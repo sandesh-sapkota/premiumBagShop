@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scatch - Premium Bag Shop</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
@@ -12,24 +13,31 @@
       font-family: 'Inter', sans-serif;
     }
     
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
     .gradient-border {
       position: relative;
-      background: white;
-      border-radius: 1.5rem;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .gradient-border::before {
       content: '';
       position: absolute;
       inset: 0;
-      border-radius: 1.5rem;
-      padding: 2px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.4s ease;
     }
     
     .gradient-border:hover::before {
@@ -37,202 +45,255 @@
     }
     
     .floating {
-      animation: floating 3s ease-in-out infinite;
+      animation: floating 6s ease-in-out infinite;
     }
     
     @keyframes floating {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-15px) rotate(1deg); }
+      66% { transform: translateY(-5px) rotate(-1deg); }
     }
     
-    .glow-on-hover {
+    .pulse-slow {
+      animation: pulse-slow 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+    
+    .glow-effect {
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
       transition: all 0.3s ease;
     }
     
-    .glow-on-hover:hover {
-      box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
-    }
-    
-    input:focus {
+    .glow-effect:hover {
+      box-shadow: 0 0 40px rgba(102, 126, 234, 0.6), 0 0 60px rgba(102, 126, 234, 0.4);
       transform: translateY(-2px);
     }
     
-    @media (max-width: 768px) {
-      .floating {
-        animation: none;
+    .input-focus {
+      transition: all 0.3s ease;
+    }
+    
+    .input-focus:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .slide-up {
+      animation: slideUp 0.6s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
       }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .mesh-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen relative overflow-x-hidden">
+<body class="mesh-gradient min-h-screen relative overflow-x-hidden">
 
+  <!-- Error/Success Messages -->
   <% if(error.length>0){ %>
-  <div class="fixed top-3 left-1/2 -translate-x-1/2 z-50 p-2.5 sm:p-3 rounded-lg bg-red-500 shadow-lg max-w-sm mx-4">
-    <span class="inline-block text-white text-xs sm:text-sm">
-      <%= error %>
-    </span>
+  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-2xl bg-red-500/90 backdrop-blur-md shadow-2xl max-w-sm mx-4 slide-up">
+    <div class="flex items-center">
+      <i class="ri-error-warning-line text-white text-lg mr-3"></i>
+      <span class="text-white text-sm font-medium"><%= error %></span>
+    </div>
   </div>
   <% } %>
 
   <!-- Animated Background Elements -->
-  <div class="absolute top-10 sm:top-20 left-5 sm:left-10 w-40 sm:w-72 h-40 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-  <div class="absolute top-20 sm:top-40 right-5 sm:right-10 w-40 sm:w-72 h-40 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
-  <div class="absolute -bottom-8 left-10 sm:left-20 w-40 sm:w-72 h-40 sm:h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-4000"></div>
+  <div class="absolute top-20 left-10 w-72 h-72 bg-white/20 rounded-full mix-blend-overlay filter blur-xl pulse-slow"></div>
+  <div class="absolute top-40 right-10 w-96 h-96 bg-white/30 rounded-full mix-blend-overlay filter blur-2xl pulse-slow" style="animation-delay: 2s;"></div>
+  <div class="absolute bottom-20 left-20 w-80 h-80 bg-white/25 rounded-full mix-blend-overlay filter blur-xl pulse-slow" style="animation-delay: 4s;"></div>
 
-  <div class="relative min-h-screen flex items-center justify-center py-4 sm:py-6 lg:py-8 px-3 sm:px-4">
-    <div class="max-w-6xl w-full">
+  <div class="relative min-h-screen flex items-center justify-center py-8 px-4">
+    <div class="max-w-7xl w-full">
       
       <!-- Header Section -->
-      <div class="text-center mb-4 sm:mb-6 lg:mb-8 floating">
-        <div class="inline-block mb-2 sm:mb-3">
-          <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl mx-auto mb-2 sm:mb-3 lg:mb-4 transform hover:rotate-12 transition-transform duration-300">
-            <svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-            </svg>
+      <div class="text-center mb-12 floating">
+        <div class="inline-block mb-6">
+          <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-4 glow-effect">
+            <i class="ri-shopping-bag-3-line text-3xl text-white"></i>
           </div>
         </div>
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-1 sm:mb-2">
-          <span class="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Welcome to Scatch
-          </span>
+        <h1 class="text-5xl lg:text-6xl font-extrabold mb-4 text-white drop-shadow-lg">
+          Welcome to <span class="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">Scatch</span>
         </h1>
-        <p class="text-gray-600 text-xs sm:text-sm lg:text-base font-medium">Your premium bag destination awaits</p>
+        <p class="text-white/80 text-lg font-medium max-w-md mx-auto">Your premium destination for luxury bags and accessories</p>
       </div>
 
-      <!-- Main Container -->
-      <div class="grid md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 max-w-5xl mx-auto mb-4 sm:mb-6">
+      <!-- Main Authentication Container -->
+      <div class="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto mb-12">
         
         <!-- Create Account Card -->
-        <div class="gradient-border bg-white/80 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8 transform hover:scale-105 transition-all duration-300">
-          <div class="mb-4 sm:mb-6">
-            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-1">
-              Create Account
-            </h2>
-            <p class="text-gray-600 text-xs sm:text-sm">Join the exclusive Scatch community</p>
+        <div class="gradient-border rounded-3xl shadow-2xl p-8 transform hover:scale-[1.02] transition-all duration-500 slide-up">
+          <div class="mb-8">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mr-4">
+                <i class="ri-user-add-line text-white text-xl"></i>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+                <p class="text-gray-600 text-sm">Join our exclusive community</p>
+              </div>
+            </div>
           </div>
           
-          <form action="/users/register" method="POST" class="space-y-3 sm:space-y-4">
+          <form action="/users/register" method="POST" class="space-y-6">
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
-                <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 group-focus-within:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="ri-user-line text-gray-400 group-focus-within:text-purple-500 transition-colors"></i>
+                </div>
+                <input 
+                  type="text" 
+                  name="fullname"
+                  placeholder="Enter your full name" 
+                  class="w-full pl-12 pr-4 py-4 bg-gray-50/80 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white input-focus transition-all duration-300 text-gray-800"
+                  required
+                >
               </div>
-              <input 
-                type="text" 
-                name="fullname"
-                placeholder="Full Name" 
-                class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all duration-300"
-                required
-              >
             </div>
             
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
-                <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 group-focus-within:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="ri-mail-line text-gray-400 group-focus-within:text-purple-500 transition-colors"></i>
+                </div>
+                <input 
+                  type="email" 
+                  name="email"
+                  placeholder="Enter your email address" 
+                  class="w-full pl-12 pr-4 py-4 bg-gray-50/80 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white input-focus transition-all duration-300 text-gray-800"
+                  required
+                >
               </div>
-              <input 
-                type="email" 
-                name="email"
-                placeholder="Email Address" 
-                class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all duration-300"
-                required
-              >
             </div>
             
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
-                <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 group-focus-within:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="ri-lock-line text-gray-400 group-focus-within:text-purple-500 transition-colors"></i>
+                </div>
+                <input 
+                  type="password" 
+                  name="password"
+                  placeholder="Create a secure password" 
+                  class="w-full pl-12 pr-4 py-4 bg-gray-50/80 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white input-focus transition-all duration-300 text-gray-800"
+                  required
+                >
               </div>
-              <input 
-                type="password" 
-                name="password"
-                placeholder="Password" 
-                class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all duration-300"
-                required
-              >
             </div>
             
             <button 
               type="submit" 
-              class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-2.5 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base rounded-xl hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 hover:shadow-2xl transition-all duration-300 glow-on-hover cursor-pointer mt-4 sm:mt-6"
+              class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-4 rounded-2xl hover:from-purple-700 hover:to-blue-700 transform hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 glow-effect mt-8"
             >
+              <i class="ri-user-add-line mr-2"></i>
               Create My Account
             </button>
           </form>
           
-          <div class="mt-3 sm:mt-4 text-center">
-            <p class="text-gray-600 text-xs sm:text-sm">
+          <div class="mt-6 text-center">
+            <p class="text-gray-600">
               Already have an account? 
-              <a href="#login" class="text-purple-600 hover:text-purple-700 font-semibold hover:underline">Sign in here</a>
+              <a href="#login" onclick="scrollToLogin()" class="text-purple-600 hover:text-purple-700 font-semibold hover:underline cursor-pointer">Sign in here</a>
             </p>
           </div>
         </div>
 
         <!-- Login Card -->
-        <div class="gradient-border bg-white/80 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8 transform hover:scale-105 transition-all duration-300">
-          <div class="mb-4 sm:mb-6">
-            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
-              Login
-            </h2>
-            <p class="text-gray-600 text-xs sm:text-sm">Welcome back to Scatch</p>
+        <div class="gradient-border rounded-3xl shadow-2xl p-8 transform hover:scale-[1.02] transition-all duration-500 slide-up" style="animation-delay: 0.2s;" id="login-card">
+          <div class="mb-8">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mr-4">
+                <i class="ri-login-circle-line text-white text-xl"></i>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>
+                <p class="text-gray-600 text-sm">Sign in to your account</p>
+              </div>
+            </div>
           </div>
           
-          <form action="/users/login" method="POST" class="space-y-3 sm:space-y-4">
+          <form action="/users/login" method="POST" class="space-y-6">
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
-                <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="ri-mail-line text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                </div>
+                <input 
+                  type="email" 
+                  name="email"
+                  placeholder="Enter your email address" 
+                  class="w-full pl-12 pr-4 py-4 bg-gray-50/80 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white input-focus transition-all duration-300 text-gray-800"
+                  required
+                >
               </div>
-              <input 
-                type="email" 
-                name="email"
-                placeholder="Email Address" 
-                class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300"
-                required
-              >
             </div>
             
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
-                <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="ri-lock-line text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                </div>
+                <input 
+                  type="password" 
+                  name="password"
+                  placeholder="Enter your password" 
+                  class="w-full pl-12 pr-4 py-4 bg-gray-50/80 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white input-focus transition-all duration-300 text-gray-800"
+                  required
+                >
               </div>
-              <input 
-                type="password" 
-                name="password"
-                placeholder="Password" 
-                class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300"
-                required
-              >
             </div>
             
-            <div class="flex items-center justify-between text-xs sm:text-sm">
+            <div class="flex items-center justify-between">
               <label class="flex items-center cursor-pointer group">
-                <input type="checkbox" class="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                <span class="ml-1.5 sm:ml-2 text-gray-600 group-hover:text-gray-800">Remember me</span>
+                <input type="checkbox" class="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <span class="ml-3 text-gray-700 group-hover:text-gray-900 font-medium">Remember me</span>
               </label>
               <a href="#forgot" class="text-blue-600 hover:text-blue-700 font-semibold hover:underline">Forgot Password?</a>
             </div>
             
             <button 
               type="submit" 
-              class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base rounded-xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 hover:shadow-2xl transition-all duration-300 glow-on-hover cursor-pointer mt-4 sm:mt-6"
+              class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 rounded-2xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 glow-effect mt-8"
             >
-              Login to Account
+              <i class="ri-login-circle-line mr-2"></i>
+              Sign In to Account
             </button>
           </form>
           
-          <div class="mt-3 sm:mt-4 text-center">
-            <p class="text-gray-600 text-xs sm:text-sm">
+          <div class="mt-6 text-center">
+            <p class="text-gray-600">
               Don't have an account? 
-              <a href="#register" class="text-blue-600 hover:text-blue-700 font-semibold hover:underline">Create one</a>
+              <a href="#register" onclick="scrollToRegister()" class="text-blue-600 hover:text-blue-700 font-semibold hover:underline cursor-pointer">Create one</a>
             </p>
           </div>
         </div>
@@ -240,40 +301,60 @@
       </div>
 
       <!-- Feature Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto">
-        <div class="bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center hover:bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div class="glass-effect rounded-2xl p-6 text-center hover:bg-white/40 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 slide-up">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+            <i class="ri-award-line text-white text-2xl"></i>
           </div>
-          <h3 class="font-bold text-gray-800 mb-1 text-sm sm:text-base">Premium Quality</h3>
-          <p class="text-gray-600 text-xs">Handpicked luxury bags from top brands</p>
+          <h3 class="font-bold text-white text-lg mb-2">Premium Quality</h3>
+          <p class="text-white/80 text-sm">Handpicked luxury bags from world-renowned brands</p>
         </div>
         
-        <div class="bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center hover:bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+        <div class="glass-effect rounded-2xl p-6 text-center hover:bg-white/40 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 slide-up" style="animation-delay: 0.1s;">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+            <i class="ri-price-tag-3-line text-white text-2xl"></i>
           </div>
-          <h3 class="font-bold text-gray-800 mb-1 text-sm sm:text-base">Best Prices</h3>
-          <p class="text-gray-600 text-xs">Competitive pricing with exclusive deals</p>
+          <h3 class="font-bold text-white text-lg mb-2">Best Prices</h3>
+          <p class="text-white/80 text-sm">Competitive pricing with exclusive member discounts</p>
         </div>
         
-        <div class="bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center hover:bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+        <div class="glass-effect rounded-2xl p-6 text-center hover:bg-white/40 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 slide-up" style="animation-delay: 0.2s;">
+          <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+            <i class="ri-rocket-line text-white text-2xl"></i>
           </div>
-          <h3 class="font-bold text-gray-800 mb-1 text-sm sm:text-base">Fast Delivery</h3>
-          <p class="text-gray-600 text-xs">Express shipping worldwide</p>
+          <h3 class="font-bold text-white text-lg mb-2">Fast Delivery</h3>
+          <p class="text-white/80 text-sm">Express worldwide shipping with tracking</p>
         </div>
       </div>
 
     </div>
   </div>
+
+  <script>
+    function scrollToLogin() {
+      document.getElementById('login-card').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+    
+    function scrollToRegister() {
+      window.scrollTo({ 
+        top: 0, 
+        behavior: 'smooth' 
+      });
+    }
+
+    // Auto-hide error messages
+    setTimeout(() => {
+      const errorMsg = document.querySelector('.fixed.top-4');
+      if (errorMsg) {
+        errorMsg.style.opacity = '0';
+        errorMsg.style.transform = 'translateX(-50%) translateY(-20px)';
+        setTimeout(() => errorMsg.remove(), 300);
+      }
+    }, 5000);
+  </script>
 
 </body>
 </html>

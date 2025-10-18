@@ -6,34 +6,220 @@
   <title>Scatch - Premium Bag Shop</title>
   <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'inter': ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
-<body class="font-['helvetica_now_display']">
-  <nav class="w-full flex justify-between px-5 py-3">
-    <h3 class="text-xl">Scatch</h3>
-    <% var loggedin = typeof loggedin !== "undefined" ? loggedin : true %>
-    <% if(loggedin){ %>
+<body class="font-inter bg-gray-50">
+  <% var loggedin = typeof loggedin !== "undefined" ? loggedin : true %>
+  
+  <!-- Modern Navigation Bar -->
+  <nav class="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        
+        <!-- Logo Section -->
+        <div class="flex items-center">
+          <a href="/shop" class="flex items-center space-x-3 group">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <i class="ri-shopping-bag-3-fill text-white text-lg"></i>
+            </div>
+            <div class="hidden sm:block">
+              <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Scatch
+              </h1>
+              <p class="text-xs text-gray-500 -mt-1">Premium Bags</p>
+            </div>
+          </a>
+        </div>
 
-      <div class="flex gap-5">
-        <a href="/shop">Shop</a>
-        <a href="/cart">Cart</a>
-        <a href="/account">My Account</a>
-        <a class="text-red-600" href="/users/logout">Logout</a>
+        <!-- Desktop Navigation -->
+        <% if(loggedin){ %>
+        <div class="hidden md:flex items-center space-x-6">
+          <!-- Quick Search -->
+          <div class="relative hidden lg:block">
+            <form action="/shop" method="GET" class="flex items-center">
+              <div class="relative">
+                <i class="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" name="search" placeholder="Search bags..." 
+                       class="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+              </div>
+            </form>
+          </div>
+
+          <!-- Navigation Links -->
+          <div class="flex items-center space-x-2">
+            <!-- Shop Link -->
+            <a href="/shop" class="nav-link group flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+              <i class="ri-store-2-line text-lg group-hover:scale-110 transition-transform"></i>
+              <span class="font-medium">Shop</span>
+            </a>
+
+            <!-- Cart Link with Badge -->
+            <a href="/cart" class="nav-link group flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 relative">
+              <div class="relative">
+                <i class="ri-shopping-cart-line text-lg group-hover:scale-110 transition-transform"></i>
+                <% if(typeof cartCount !== 'undefined' && cartCount > 0) { %>
+                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg animate-pulse">
+                  <%= cartCount > 9 ? '9+' : cartCount %>
+                </span>
+                <% } %>
+              </div>
+              <span class="font-medium">Cart</span>
+            </a>
+
+            <!-- Account Link -->
+            <a href="/account" class="nav-link group flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+              <i class="ri-user-line text-lg group-hover:scale-110 transition-transform"></i>
+              <span class="font-medium">Account</span>
+            </a>
+          </div>
+
+          <!-- Logout Button -->
+          <a href="/logout" onclick="return confirm('Are you sure you want to logout?')" 
+             class="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+            <i class="ri-logout-box-line"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <div class="md:hidden">
+          <button onclick="toggleMobileMenu()" class="mobile-menu-btn p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors">
+            <i class="ri-menu-line text-xl"></i>
+          </button>
+        </div>
+        <% } else { %>
+        <!-- Guest Navigation -->
+        <div class="flex items-center space-x-4">
+          <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Login</a>
+          <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">Get Started</a>
+        </div>
+        <% } %>
       </div>
-    </nav>
-    <% } %>
-
-<!-- Navigation
-<nav class="bg-white shadow-md">
-  <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-    <a href="/" class="text-2xl font-bold text-gray-800">
-      <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Scatch</span>
-    </a>
-    <div class="flex items-center space-x-6">
-      <a href="/" class="text-gray-600 hover:text-gray-800 transition-colors">Home</a>
-      <a href="/shop" class="text-gray-600 hover:text-gray-800 transition-colors">Shop</a>
-      <a href="/cart" class="text-gray-600 hover:text-gray-800 transition-colors">Cart</a>
-      <a href="/logout" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all">Logout</a>
     </div>
-  </div>
-</nav> -->
+
+    <!-- Mobile Menu -->
+    <% if(loggedin){ %>
+    <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-100 shadow-lg">
+      <div class="px-4 pt-2 pb-4 space-y-1">
+        <a href="/shop" class="mobile-nav-link flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          <i class="ri-store-2-line text-lg text-blue-600"></i>
+          <span class="font-medium">Shop</span>
+        </a>
+        
+        <a href="/cart" class="mobile-nav-link flex items-center justify-between px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          <div class="flex items-center space-x-3">
+            <i class="ri-shopping-cart-line text-lg text-blue-600"></i>
+            <span class="font-medium">Cart</span>
+          </div>
+          <% if(typeof cartCount !== 'undefined' && cartCount > 0) { %>
+          <span class="bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+            <%= cartCount > 9 ? '9+' : cartCount %>
+          </span>
+          <% } %>
+        </a>
+        
+        <a href="/account" class="mobile-nav-link flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          <i class="ri-user-line text-lg text-blue-600"></i>
+          <span class="font-medium">My Account</span>
+        </a>
+        
+        <div class="pt-2 mt-2 border-t border-gray-100">
+          <a href="/logout" onclick="return confirm('Are you sure you want to logout?')" 
+             class="flex items-center space-x-3 px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
+            <i class="ri-logout-box-line text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </nav>
+
+  <!-- Mobile Menu JavaScript -->
+  <script>
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuBtn = document.querySelector('.mobile-menu-btn i');
+      
+      if (mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+        menuBtn.className = 'ri-close-line text-xl';
+      } else {
+        mobileMenu.classList.add('hidden');
+        menuBtn.className = 'ri-menu-line text-xl';
+      }
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (!menuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+        mobileMenu.classList.add('hidden');
+        document.querySelector('.mobile-menu-btn i').className = 'ri-menu-line text-xl';
+      }
+    });
+
+    // Add active state to current page
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
+      
+      navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+          if (link.classList.contains('nav-link')) {
+            link.classList.add('text-blue-600', 'bg-blue-50');
+            link.classList.remove('text-gray-700');
+          } else {
+            link.classList.add('bg-blue-50', 'text-blue-600');
+            link.classList.remove('text-gray-700');
+          }
+        }
+      });
+    });
+  </script>
+
+  <!-- Custom Styles -->
+  <style>
+    .nav-link.active {
+      @apply text-blue-600 bg-blue-50;
+    }
+    
+    .mobile-nav-link.active {
+      @apply bg-blue-50 text-blue-600;
+    }
+
+    /* Enhanced hover effects */
+    .nav-link:hover i {
+      transform: scale(1.1);
+    }
+
+    /* Cart badge animation */
+    @keyframes bounce-gentle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .animate-bounce-gentle {
+      animation: bounce-gentle 2s infinite;
+    }
+
+    /* Smooth transitions */
+    * {
+      transition-property: all;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>

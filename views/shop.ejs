@@ -1,54 +1,634 @@
 <%- include('./partials/header') %>
 
-  <% if(success.length>0){ %>
-  <div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-blue-500">
-    <span class="inline-block mt-1 mb-1 text-white">
+<div class="min-h-screen bg-gray-50">
+  <!-- Success/Error Messages -->
+  <% if(typeof success !== 'undefined' && success && success.length > 0) { %>
+  <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in" id="successMessage">
+    <div class="flex items-center">
+      <i class="ri-check-circle-line mr-2"></i>
       <%= success %>
-    </span>
+    </div>
   </div>
   <% } %>
 
-  <div class="w-full min-h-screen flex items-start px-20 py-20">
-    <div class="w-[25%] flex flex-col h-screen items-start">
-      <div class="flex items-center gap-2">
-        <h3>sort by</h3>
-        <form action="/shop">
-          <select class="border-[1px] px-2 py-1" name="sortby" id="">
-            <option value="popular">Popular</option>
-            <option value="newest">Newest</option>
-          </select>
-        </form>
-      </div>
-      <div class="flex flex-col mt-20">
-        <a class="block w-fit mb-2" href="">New Collection</a>
-        <a class="block w-fit mb-2" href="">All Products</a>
-        <a class="block w-fit mb-2" href="">Discounted Products</a>
-      </div>
-      <div class="mt-32">
-        <a class="block w-fit mb-2" href="">Filter by :</a>
-        <a class="block w-fit mb-2" href="">Availability</a>
-        <a class="block w-fit mb-2" href="">Discount</a>
-      </div>
+  <% if(typeof error !== 'undefined' && error && error.length > 0) { %>
+  <div class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in" id="errorMessage">
+    <div class="flex items-center">
+      <i class="ri-error-warning-line mr-2"></i>
+      <%= error %>
     </div>
-    <div class="w-[75%] flex flex-col h-screen gap-5">
-      <div class="flex items-start gap-5">
-        <% products.forEach(function(product){ %>
-          <div class="w-60">
-            <div class="w-full h-52 flex items-center justify-center bg-[<%= product.bg_color %>]">
-              <img class="h-[12rem]" src="data:image/jpeg;base64,<%= product.image.toString('base64') %>" alt="">
-            </div>
-            <div class="flex justify-between bg-[<%= product.panelcolor %>] items-center px-4 py-4 text-[<%= product.textcolor %>]">
-              <div>
-                <h3><%= product.name %></h3>
-                <h4>Rs. <%= product.price %></h4>
+  </div>
+  <% } %>
+
+  <!-- Mobile Filter Overlay -->
+  <div id="mobileOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+      
+      <!-- Filter Sidebar -->
+      <div id="filterSidebar" class="w-full lg:w-80 -translate-x-full lg:translate-x-0 fixed lg:static top-0 left-0 h-full lg:h-auto bg-white lg:bg-transparent z-50 lg:z-auto transition-transform duration-300 ease-in-out">
+        <div class="p-6 lg:p-0 h-full overflow-y-auto custom-scrollbar">
+          <!-- Mobile Close Button -->
+          <div class="lg:hidden flex items-center justify-between mb-6 pb-4 border-b">
+            <h2 class="text-xl font-semibold text-gray-900">Filters</h2>
+            <button onclick="toggleMobileFilters()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <i class="ri-close-line text-xl text-gray-600"></i>
+            </button>
+          </div>
+
+          <!-- Filter Form -->
+          <form id="filterForm" method="GET" action="/shop" class="space-y-6">
+            
+            <!-- Search Section -->
+            <div class="bg-white lg:bg-gray-50 rounded-xl p-4">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="ri-search-line mr-2 text-blue-600"></i>
+                Search Products
+              </h3>
+              <div class="relative">
+                <input type="text" 
+                       name="search" 
+                       value="<%= currentFilters.search || '' %>" 
+                       placeholder="Search for bags..." 
+                       class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                <i class="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <% if(currentFilters.search) { %>
+                <a href="/shop" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <i class="ri-close-line"></i>
+                </a>
+                <% } %>
               </div>
-              <a class="w-7 h-7 flex items-center justify-center rounded-full bg-white" href="/addtocart/<%=product._id %>">
-                <i class="ri-add-line"></i>
+            </div>
+
+            <!-- Price Range Section -->
+            <div class="bg-white lg:bg-gray-50 rounded-xl p-4">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="ri-money-dollar-circle-line mr-2 text-green-600"></i>
+                Price Range
+              </h3>
+              <div class="space-y-4">
+                <!-- Price Display -->
+                <div class="flex items-center justify-between text-sm text-gray-600">
+                  <span id="minPriceDisplay">Rs. <%= stats.minPrice || 0 %></span>
+                  <span id="maxPriceDisplay">Rs. <%= stats.maxPrice || 50000 %></span>
+                </div>
+                
+                <!-- Price Sliders -->
+                <div class="space-y-3">
+                  <div>
+                    <label class="text-xs text-gray-500 mb-1 block">Minimum Price</label>
+                    <input type="range" 
+                           id="minPrice"
+                           name="minPrice" 
+                           min="<%= stats.minPrice || 0 %>" 
+                           max="<%= stats.maxPrice || 50000 %>" 
+                           value="<%= currentFilters.minPrice || stats.minPrice || 0 %>"
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                  </div>
+                  <div>
+                    <label class="text-xs text-gray-500 mb-1 block">Maximum Price</label>
+                    <input type="range" 
+                           id="maxPrice"
+                           name="maxPrice" 
+                           min="<%= stats.minPrice || 0 %>" 
+                           max="<%= stats.maxPrice || 50000 %>" 
+                           value="<%= currentFilters.maxPrice || stats.maxPrice || 50000 %>"
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                  </div>
+                </div>
+
+                <!-- Quick Price Filters -->
+                <div class="grid grid-cols-2 gap-2">
+                  <a href="/shop?minPrice=0&maxPrice=5000" 
+                     class="text-center py-2 px-3 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                    Under Rs. 5K
+                  </a>
+                  <a href="/shop?minPrice=5000&maxPrice=15000" 
+                     class="text-center py-2 px-3 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                    Rs. 5K - 15K
+                  </a>
+                  <a href="/shop?minPrice=15000&maxPrice=30000" 
+                     class="text-center py-2 px-3 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                    Rs. 15K - 30K
+                  </a>
+                  <a href="/shop?minPrice=30000&maxPrice=100000" 
+                     class="text-center py-2 px-3 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                    Above Rs. 30K
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sort Section -->
+            <div class="bg-white lg:bg-gray-50 rounded-xl p-4">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="ri-sort-desc mr-2 text-purple-600"></i>
+                Sort By
+              </h3>
+              <select name="sort" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                <option value="">Default Order</option>
+                <option value="price_asc" <%= currentFilters.sort === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
+                <option value="price_desc" <%= currentFilters.sort === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
+                <option value="name_asc" <%= currentFilters.sort === 'name_asc' ? 'selected' : '' %>>Name: A to Z</option>
+                <option value="name_desc" <%= currentFilters.sort === 'name_desc' ? 'selected' : '' %>>Name: Z to A</option>
+                <option value="newest" <%= currentFilters.sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+                <option value="discount" <%= currentFilters.sort === 'discount' ? 'selected' : '' %>>Best Discount</option>
+              </select>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="flex gap-3">
+              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center">
+                <i class="ri-filter-3-line mr-2"></i>
+                Apply Filters
+              </button>
+              <a href="/shop" class="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                <i class="ri-refresh-line"></i>
               </a>
             </div>
+          </form>
+
+          <!-- Active Filters Display -->
+          <% if(currentFilters && (currentFilters.search || currentFilters.minPrice || currentFilters.maxPrice || currentFilters.sort)) { %>
+          <div class="mt-6 p-4 bg-blue-50 rounded-xl">
+            <h4 class="font-medium text-blue-900 mb-2 flex items-center">
+              <i class="ri-filter-2-line mr-2"></i>
+              Active Filters
+            </h4>
+            <div class="space-y-2">
+              <% if(currentFilters.search) { %>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-blue-700">Search: "<%= currentFilters.search %>"</span>
+                <a href="/shop?<%= new URLSearchParams({...currentFilters, search: ''}).toString().replace('search=&', '').replace('search=', '') %>" 
+                   class="text-blue-600 hover:text-blue-800">
+                  <i class="ri-close-line"></i>
+                </a>
+              </div>
+              <% } %>
+              <% if(currentFilters.minPrice || currentFilters.maxPrice) { %>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-blue-700">Price: Rs. <%= currentFilters.minPrice || 0 %> - Rs. <%= currentFilters.maxPrice || '∞' %></span>
+                <a href="/shop?<%= new URLSearchParams({...currentFilters, minPrice: '', maxPrice: ''}).toString().replace(/[min|max]Price=&?/g, '') %>" 
+                   class="text-blue-600 hover:text-blue-800">
+                  <i class="ri-close-line"></i>
+                </a>
+              </div>
+              <% } %>
+              <% if(currentFilters.sort) { %>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-blue-700">Sort: <%= currentFilters.sort.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) %></span>
+                <a href="/shop?<%= new URLSearchParams({...currentFilters, sort: ''}).toString().replace('sort=&', '').replace('sort=', '') %>" 
+                   class="text-blue-600 hover:text-blue-800">
+                  <i class="ri-close-line"></i>
+                </a>
+              </div>
+              <% } %>
+            </div>
           </div>
-          <% }) %>
+          <% } %>
         </div>
       </div>
+
+      <!-- Main Content -->
+      <div class="flex-1">
+        <!-- Header Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <!-- Title and Stats -->
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 mb-2">Premium Bag Collection</h1>
+              <div class="flex items-center gap-4 text-sm text-gray-600">
+                <span class="flex items-center">
+                  <i class="ri-shopping-bag-line mr-1"></i>
+                  <%= products.length %> products found
+                </span>
+                <% if(stats.minPrice && stats.maxPrice) { %>
+                <span class="flex items-center">
+                  <i class="ri-price-tag-3-line mr-1"></i>
+                  Rs. <%= stats.minPrice.toLocaleString() %> - Rs. <%= stats.maxPrice.toLocaleString() %>
+                </span>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3">
+              <!-- Mobile Filter Button -->
+              <button onclick="toggleMobileFilters()" class="lg:hidden bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="ri-filter-3-line mr-2"></i>
+                Filters
+              </button>
+
+              <!-- View Toggle -->
+              <div class="hidden lg:flex bg-gray-100 p-1 rounded-lg">
+                <button id="gridView" onclick="toggleView('grid')" class="p-2 rounded bg-gray-200 text-gray-900 transition-colors">
+                  <i class="ri-layout-grid-line"></i>
+                </button>
+                <button id="listView" onclick="toggleView('list')" class="p-2 rounded text-gray-600 hover:text-gray-900 transition-colors">
+                  <i class="ri-layout-row-line"></i>
+                </button>
+              </div>
+
+              <!-- Results Per Page -->
+              <select class="hidden lg:block border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option>12 per page</option>
+                <option>24 per page</option>
+                <option>48 per page</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <% if(products.length > 0) { %>
+        <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <% products.forEach(function(product, index){ %>
+          <div class="product-card bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden">
+            
+            <!-- Product Image -->
+            <div class="relative aspect-square bg-[<%= product.bg_color || '#f0f0f0' %>] flex items-center justify-center overflow-hidden">
+              <% if(product.image) { %>
+                <img class="h-4/5 w-auto object-contain group-hover:scale-110 transition-transform duration-500" 
+                     src="data:image/jpeg;base64,<%= product.image.toString('base64') %>" 
+                     alt="<%= product.name %>"
+                     loading="lazy">
+              <% } else { %>
+                <div class="text-gray-400">
+                  <i class="ri-image-line text-4xl"></i>
+                  <p class="text-sm mt-2">No Image</p>
+                </div>
+              <% } %>
+              
+              <!-- Badges -->
+              <div class="absolute top-3 left-3 flex flex-col gap-2">
+                <% if(product.discount && product.discount > 0) { %>
+                <div class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                  -Rs.<%= product.discount %>
+                </div>
+                <% } %>
+                <% if(index < 5) { %>
+                <div class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                  New
+                </div>
+                <% } %>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-white transition-colors" title="Add to Wishlist">
+                  <i class="ri-heart-line text-gray-600 text-sm"></i>
+                </button>
+                <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-white transition-colors" title="Quick View">
+                  <i class="ri-eye-line text-gray-600 text-sm"></i>
+                </button>
+              </div>
+              
+              <!-- Stock Status -->
+              <div class="absolute bottom-3 left-3">
+                <div class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <i class="ri-check-line mr-1"></i>In Stock
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="p-4">
+              <div class="flex items-start justify-between mb-2">
+                <h3 class="font-semibold text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
+                  <%= product.name || 'Untitled Product' %>
+                </h3>
+                <!-- Rating -->
+                <div class="flex items-center ml-2">
+                  <div class="flex text-yellow-400 text-xs">
+                    <i class="ri-star-fill"></i>
+                    <i class="ri-star-fill"></i>
+                    <i class="ri-star-fill"></i>
+                    <i class="ri-star-fill"></i>
+                    <i class="ri-star-line"></i>
+                  </div>
+                  <span class="text-xs text-gray-500 ml-1">(4.0)</span>
+                </div>
+              </div>
+              
+              <!-- Price Section -->
+              <div class="mb-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <% if(product.discount && product.discount > 0) { %>
+                      <div class="flex items-center gap-2">
+                        <span class="text-lg font-bold text-green-600">Rs. <%= (product.price - product.discount).toLocaleString() %></span>
+                        <span class="text-sm text-gray-500 line-through">Rs. <%= product.price.toLocaleString() %></span>
+                      </div>
+                      <span class="text-xs text-green-600 font-medium">
+                        Save Rs. <%= product.discount.toLocaleString() %> 
+                        (<%= Math.round((product.discount / product.price) * 100) %>% off)
+                      </span>
+                    <% } else { %>
+                      <span class="text-lg font-bold text-gray-900">Rs. <%= product.price.toLocaleString() %></span>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add to Cart Button -->
+              <div class="space-y-2">
+                <a href="/addtocart/<%= product._id %>" 
+                   class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center group/btn shadow-sm hover:shadow-md">
+                  <i class="ri-shopping-cart-line mr-2 group-hover/btn:animate-bounce"></i>
+                  Add to Cart
+                </a>
+                
+                <!-- Quick Buy Button -->
+                <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                  <i class="ri-flashlight-line mr-2"></i>
+                  Quick Buy
+                </button>
+              </div>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        
+        <!-- Pagination -->
+        <% if(products.length > 12) { %>
+        <div class="mt-12 flex justify-center">
+          <nav class="flex items-center space-x-1">
+            <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+              <i class="ri-arrow-left-s-line"></i>
+            </button>
+            <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium">1</button>
+            <button class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">2</button>
+            <button class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">3</button>
+            <span class="px-2 text-gray-500">...</span>
+            <button class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">10</button>
+            <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+              <i class="ri-arrow-right-s-line"></i>
+            </button>
+          </nav>
+        </div>
+        <% } %>
+        
+        <% } else { %>
+        <!-- Empty State -->
+        <div class="text-center py-16">
+          <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+            <i class="ri-shopping-bag-line text-4xl text-gray-400"></i>
+          </div>
+          <h3 class="text-2xl font-semibold text-gray-900 mb-2">No products found</h3>
+          <p class="text-gray-600 mb-6 max-w-sm mx-auto">
+            <% if(currentFilters && (currentFilters.search || currentFilters.priceRange || currentFilters.sort)) { %>
+              No products match your current filters. Try adjusting your search criteria.
+            <% } else { %>
+              We're currently updating our inventory. Please check back soon!
+            <% } %>
+          </p>
+          <% if(currentFilters && (currentFilters.search || currentFilters.priceRange || currentFilters.sort)) { %>
+          <a href="/shop" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            <i class="ri-refresh-line mr-2"></i>
+            Clear All Filters
+          </a>
+          <% } else { %>
+          <a href="/" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            <i class="ri-home-line mr-2"></i>
+            Go to Homepage
+          </a>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
     </div>
-  <%- include('./partials/footer') %>
+  </div>
+
+  <!-- JavaScript for Interactive Features -->
+  <script>
+    // Mobile Menu Toggle
+    function toggleMobileFilters() {
+      const sidebar = document.getElementById('filterSidebar');
+      const overlay = document.getElementById('mobileOverlay');
+      sidebar.classList.toggle('translate-x-0');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    // Close mobile filters when clicking overlay
+    document.getElementById('mobileOverlay')?.addEventListener('click', toggleMobileFilters);
+
+    // Grid/List View Toggle
+    function toggleView(viewType) {
+      const grid = document.getElementById('productsGrid');
+      const gridBtn = document.getElementById('gridView');
+      const listBtn = document.getElementById('listView');
+      
+      if (viewType === 'list') {
+        grid.className = 'space-y-4';
+        grid.querySelectorAll('.product-card').forEach(card => {
+          card.className = 'product-card bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden flex';
+        });
+        gridBtn.classList.remove('bg-gray-200', 'text-gray-900');
+        gridBtn.classList.add('text-gray-600');
+        listBtn.classList.add('bg-gray-200', 'text-gray-900');
+        listBtn.classList.remove('text-gray-600');
+      } else {
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+        grid.querySelectorAll('.product-card').forEach(card => {
+          card.className = 'product-card bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden';
+        });
+        listBtn.classList.remove('bg-gray-200', 'text-gray-900');
+        listBtn.classList.add('text-gray-600');
+        gridBtn.classList.add('bg-gray-200', 'text-gray-900');
+        gridBtn.classList.remove('text-gray-600');
+      }
+    }
+
+    // Price Range Updates
+    const minPriceInput = document.getElementById('minPrice');
+    const maxPriceInput = document.getElementById('maxPrice');
+    const minPriceDisplay = document.getElementById('minPriceDisplay');
+    const maxPriceDisplay = document.getElementById('maxPriceDisplay');
+
+    minPriceInput?.addEventListener('input', function() {
+      minPriceDisplay.textContent = `Rs. ${parseInt(this.value).toLocaleString()}`;
+      if (parseInt(this.value) > parseInt(maxPriceInput.value)) {
+        maxPriceInput.value = this.value;
+        maxPriceDisplay.textContent = `Rs. ${parseInt(this.value).toLocaleString()}`;
+      }
+    });
+
+    maxPriceInput?.addEventListener('input', function() {
+      maxPriceDisplay.textContent = `Rs. ${parseInt(this.value).toLocaleString()}`;
+      if (parseInt(this.value) < parseInt(minPriceInput.value)) {
+        minPriceInput.value = this.value;
+        minPriceDisplay.textContent = `Rs. ${parseInt(this.value).toLocaleString()}`;
+      }
+    });
+
+    // Auto-submit filter form when filters change
+    function autoSubmitFilters() {
+      const filterForm = document.getElementById('filterForm');
+      if (filterForm) {
+        setTimeout(() => {
+          filterForm.submit();
+        }, 100);
+      }
+    }
+
+    // Add event listeners to filter inputs for auto-submit
+    document.querySelectorAll('#filterForm select, #filterForm input[type="range"]').forEach(input => {
+      if (input.type === 'range') {
+        input.addEventListener('change', autoSubmitFilters);
+      } else {
+        input.addEventListener('change', autoSubmitFilters);
+      }
+    });
+
+    // Auto-hide success/error messages
+    function autoHideMessage(messageId, delay = 5000) {
+      const message = document.getElementById(messageId);
+      if (message) {
+        setTimeout(() => {
+          message.style.transform = 'translateX(100%)';
+          message.style.opacity = '0';
+          setTimeout(() => {
+            message.remove();
+          }, 300);
+        }, delay);
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set initial price range display values
+      if (minPriceInput && minPriceDisplay) {
+        minPriceDisplay.textContent = `Rs. ${parseInt(minPriceInput.value).toLocaleString()}`;
+      }
+      if (maxPriceInput && maxPriceDisplay) {
+        maxPriceDisplay.textContent = `Rs. ${parseInt(maxPriceInput.value).toLocaleString()}`;
+      }
+      
+      // Focus search input if there's a search query
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('search')) {
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) searchInput.focus();
+      }
+
+      // Auto-hide messages
+      autoHideMessage('successMessage');
+      autoHideMessage('errorMessage');
+
+      // Enhanced add to cart functionality
+      document.querySelectorAll('a[href*="/addtocart/"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+          const button = this;
+          const originalText = button.innerHTML;
+          
+          // Add loading state
+          button.innerHTML = '<i class="ri-loader-4-line animate-spin mr-2"></i>Adding...';
+          button.style.pointerEvents = 'none';
+          button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+          button.classList.add('bg-gray-400');
+        });
+      });
+    });
+  </script>
+
+  <style>
+    /* Custom animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .animate-fade-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+    
+    .animate-slide-in {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    
+    /* Custom scrollbar for sidebar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 2px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 2px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Line clamp utility */
+    .line-clamp-2 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+
+    /* Enhanced transitions */
+    .product-card {
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    }
+
+    /* Price range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-track {
+      background: #e2e8f0;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    input[type="range"]::-moz-range-track {
+      background: #e2e8f0;
+      height: 4px;
+      border-radius: 2px;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</div>
+
+<%- include('./partials/footer') %>

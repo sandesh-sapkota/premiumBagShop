@@ -1,52 +1,227 @@
 <%- include('./partials/header') %>
-    <div class="w-full h-screen flex items-start px-20 py-20 gap-10">
-    <% user.cart.forEach(function(item){ %>
-        <div class="w-[30%] rounded-md overflow-hidden">    
-            <div class="w-full flex justify-center h-80 bg-[<%= item.bgcolor %>]">
-                <img class="h-[18rem]" src="data:image/jpeg;base64,<%= item.image.toString('base64') %>"  alt="">
-            </div>
-            <div class="w-full flex justify-between px-5 py-4 bg-[<%= item.panelcolor %>]">
-                <h3 class="text-2xl">Clinge Bag</h3>
-                <div class="flex items-center gap-2">
-                    <i class="w-7 h-7 bg-white flex rounded-full items-center justify-center ri-add-line"></i>
-                    <div class="px-2 py-1 rounded-md bg-white text-black">01</div>
-                    <i class="w-7 h-7 bg-white rounded-full items-center justify-center ri-subtract-line"></i>
+    
+    <!-- Success/Error Messages -->
+    <% if(typeof success !== 'undefined' && success && success.length > 0) { %>
+    <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in" id="successMessage">
+      <div class="flex items-center">
+        <i class="ri-check-circle-line mr-2"></i>
+        <%= success %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if(typeof error !== 'undefined' && error && error.length > 0) { %>
+    <div class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in" id="errorMessage">
+      <div class="flex items-center">
+        <i class="ri-error-warning-line mr-2"></i>
+        <%= error %>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="w-full min-h-screen bg-gray-50 py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+            <% if(user.cart && user.cart.length> 0) { %>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Cart Items -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <% user.cart.forEach(function(item){ %>
+                            <% if(item.product && typeof item.product==='object' ) { %>
+                                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300">
+                                    <div class="flex flex-col md:flex-row">
+                                        <!-- Product Image -->
+                                        <div
+                                            class="w-full md:w-1/3 h-64 bg-[<%= item.product.bg_color || '#f0f0f0' %>] flex items-center justify-center">
+                                            <% if(item.product.image) { %>
+                                                <img class="h-48 w-auto object-contain"
+                                                    src="data:image/jpeg;base64,<%= item.product.image.toString('base64') %>"
+                                                    alt="<%= item.product.name || 'Product' %>">
+                                                <% } else { %>
+                                                    <div
+                                                        class="h-48 w-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                                        <i class="ri-image-line text-4xl"></i>
+                                                        <span class="ml-2">No Image</span>
+                                                    </div>
+                                                    <% } %>
+                                        </div>
+
+                                        <!-- Product Details -->
+                                        <div class="flex-1 p-6">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                                                        <%= item.product.name || 'Product' %>
+                                                    </h3>
+                                                    <div class="text-sm text-gray-600 mb-4">
+                                                        <p>Original Price: <span class="line-through">Rs. <%=
+                                                                    item.product.price || 0 %></span></p>
+                                                        <p>Discount: Rs. <%= Number(item.product.discount || 0) %>
+                                                        </p>
+                                                        <p class="text-lg font-semibold text-green-600">
+                                                            Final Price: Rs. <%= (item.product.price || 0) -
+                                                                Number(item.product.discount || 0) %>
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Quantity Controls -->
+                                                <div class="flex items-center space-x-3">
+                                                    <form method="POST" action="/updatecart" style="display: inline;">
+                                                        <input type="hidden" name="productId" value="<%= item.product._id %>">
+                                                        <input type="hidden" name="quantity" value="<%= (item.quantity || 1) - 1 %>">
+                                                        <button type="submit"
+                                                            class="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+                                                            <%= (item.quantity || 1) <= 1 ? 'disabled' : '' %>>
+                                                            <i class="ri-subtract-line text-sm"></i>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <span class="px-4 py-2 bg-gray-100 rounded-md font-medium min-w-[60px] text-center">
+                                                        <%= item.quantity || 1 %>
+                                                    </span>
+                                                    
+                                                    <form method="POST" action="/updatecart" style="display: inline;">
+                                                        <input type="hidden" name="productId" value="<%= item.product._id %>">
+                                                        <input type="hidden" name="quantity" value="<%= (item.quantity || 1) + 1 %>">
+                                                        <button type="submit"
+                                                            class="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors">
+                                                            <i class="ri-add-line text-sm"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action Buttons -->
+                                            <div class="mt-4 flex justify-between items-center">
+                                                <div class="text-sm text-gray-500">
+                                                    Total: <span class="font-semibold text-green-600">
+                                                        Rs. <%= ((item.product.price || 0) - Number(item.product.discount || 0)) * (item.quantity || 1) %>
+                                                    </span>
+                                                </div>
+                                                <a href="/removefromcart/<%= item.product._id %>" 
+                                                   class="text-red-500 hover:text-red-700 font-medium transition-colors"
+                                                   onclick="return confirm('Are you sure you want to remove this item?')">
+                                                    <i class="ri-delete-bin-line mr-1"></i>
+                                                    Remove
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% } %>
+                                    <% }) %>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-lg shadow-md p-6 sticky top-4 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+
+                            <div class="space-y-3">
+                                <% let subtotal=0; %>
+                                    <% let totalDiscount=0; %>
+                                        <% user.cart.forEach(function(item){ %>
+                                            <% if(item.product && typeof item.product==='object' ) { %>
+                                                <% subtotal +=(item.product.price || 0) * (item.quantity || 1); %>
+                                                    <% totalDiscount +=Number(item.product.discount || 0) *
+                                                        (item.quantity || 1); %>
+                                                        <% } %>
+                                                            <% }) %>
+
+                                                                <div class="flex justify-between">
+                                                                    <span class="text-gray-600">Subtotal</span>
+                                                                    <span class="font-medium">Rs. <%= subtotal %></span>
+                                                                </div>
+
+                                                                <div class="flex justify-between text-green-600">
+                                                                    <span>Discount</span>
+                                                                    <span>-Rs. <%= totalDiscount %></span>
+                                                                </div>
+
+                                                                <div class="flex justify-between">
+                                                                    <span class="text-gray-600">Platform Fee</span>
+                                                                    <span class="font-medium">Rs. 20</span>
+                                                                </div>
+
+                                                                <div class="flex justify-between">
+                                                                    <span class="text-gray-600">Shipping</span>
+                                                                    <span class="font-medium text-green-600">FREE</span>
+                                                                </div>
+
+                                                                <div class="border-t pt-3">
+                                                                    <div
+                                                                        class="flex justify-between text-lg font-semibold">
+                                                                        <span>Total Amount</span>
+                                                                        <span class="text-green-600">Rs. <%= subtotal -
+                                                                                totalDiscount + 20 %></span>
+                                                                    </div>
+                                                                </div>
+                            </div>
+
+                            <!-- Checkout Button -->
+                            <button
+                                class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+                                Proceed to Checkout
+                            </button>
+
+                            <!-- Continue Shopping -->
+                            <a href="/shop"
+                                class="block text-center mt-3 text-blue-600 hover:text-blue-800 font-medium">
+                                Continue Shopping
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="flex text-white items-center justify-between px-5 py-3 bg-[<%= item.textcolor %>]">
-                <h4 class="text-lg">Net Total</h4>
-                <h2 class="text-lg">Rs. <%= item.price - Number(item.discount) + 20 %></h2>
-            </div>
-        </div>
-        <div class="w-[70%]">
-            <h3 class="text">Price Breakdown></h3>
-            <div class="px-10 mt-5">
-                <div class="flex mt-2">
-                    <h4 class="w-1/3">Total MRP</h4>
-                    <h4>Rs. <%= item.price %></h4>
+            <% } else { %>
+                <!-- Empty Cart -->
+                <div class="text-center py-16">
+                    <div class="max-w-md mx-auto">
+                        <i class="ri-shopping-cart-line text-6xl text-gray-300 mb-4"></i>
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+                        <p class="text-gray-600 mb-6">Looks like you haven't added any items to your cart yet.</p>
+                        <a href="/shop"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors inline-block">
+                            Start Shopping
+                        </a>
+                    </div>
                 </div>
-                <div class="flex mt-2">
-                    <h4 class="w-1/3">Discount on MRP</h4>
-                    <h4>Rs. <%= Number(item.discount) %></h4>
-                </div>
-                <div class="flex mt-2">
-                    <h4 class="w-1/3">Platform Fee</h4>
-                    <h4>Rs. 20</h4>
-                </div>
-                <div class="flex mt-2">
-                    <h4 class="w-1/3">Shipping Fee</h4>
-                    <h4>FREE</h4>
-                </div>
-            </div>
-            <div class="w-full h-[1px] bg-black mt-10"></div>
-            <div class="flex mt-5">
-                <h3 class="w-1/3 text-xl">Total Amount</h3>
-                <h3 class="font-semibold text-xl text-green-600">Rs.<%= item.price - Number(item.discount) + 20 %></h3>                
-            </div>
-            <form action=""></form>
+            <% } %>
         </div>
     </div>
 
-    <% }) %>
-    <%- include('./partials/footer') %>
+    <style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+    </style>
 
+    <script>
+        // Auto-hide success/error messages
+        function autoHideMessage(messageId, delay = 5000) {
+            const message = document.getElementById(messageId);
+            if (message) {
+                setTimeout(() => {
+                    message.style.transform = 'translateX(100%)';
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, delay);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide messages
+            autoHideMessage('successMessage');
+            autoHideMessage('errorMessage');
+        });
+    </script>
+
+<%- include('./partials/footer') %>
