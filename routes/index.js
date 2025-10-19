@@ -10,6 +10,12 @@ router.get("/", (req,res)=>{
     res.render("auth", { error, loggedin: false });
 });
 
+// Owner Login Page
+router.get("/ownerlogin", (req, res) => {
+    let error = req.flash("error");
+    res.render("owner-login", { error });
+});
+
 router.get("/shop", isLoggedIn, async(req,res)=>{
     try{
         // Get cart count for header

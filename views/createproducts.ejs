@@ -1,9 +1,17 @@
 <%- include('./partials/header') %>
 
-<% if(success.length>0){ %>
-<div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-blue-500">
+<% if(success && success.length > 0){ %>
+<div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-green-500">
   <span class="inline-block mt-1 mb-1 text-white">
     <%= success %>
+  </span>
+</div>
+<% } %>
+
+<% if(error && error.length > 0){ %>
+<div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-red-500">
+  <span class="inline-block mt-1 mb-1 text-white">
+    <%= error %>
   </span>
 </div>
 <% } %>
@@ -28,7 +36,17 @@
                     <div class="grid grid-cols-2 gap-4">
                         <input type="text" placeholder="Product Name" name="name" id="name" required class="border p-2 rounded w-full">
                         <input type="number" placeholder="Product Price" name="price" id="price" required class="border p-2 rounded w-full">
-                        <input type="number" placeholder="Discount Price" name="discount" id="discount" class="border p-2 rounded w-full">         
+                        <input type="number" placeholder="Discount Price" name="discount" id="discount" class="border p-2 rounded w-full">
+                        <input type="number" placeholder="Quantity" name="quantity" id="quantity" required class="border p-2 rounded w-full">
+                        <select name="category" id="category" required class="border p-2 rounded w-full">
+                            <option value="">Select Category</option>
+                            <option value="handbags">Handbags</option>
+                            <option value="backpacks">Backpacks</option>
+                            <option value="wallets">Wallets</option>
+                            <option value="travel">Travel Bags</option>
+                            <option value="accessories">Accessories</option>
+                        </select>
+                        <textarea placeholder="Product Description" name="description" id="description" class="border p-2 rounded w-full col-span-2" rows="3"></textarea>         
                     </div>
                 </div>
                 <div>
